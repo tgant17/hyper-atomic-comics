@@ -1,0 +1,18 @@
+{
+  "name": "atomiccomics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "google-auth-library": "^9.4.1",
+    "google-spreadsheet": "^4.1.1",
+    "jimp": "^0.22.10",
+    "node-cron": "^3.0.3"
+  }
+}
