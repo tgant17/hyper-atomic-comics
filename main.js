@@ -1,4 +1,8 @@
-// CLEAN THIS SHIT UP YO
+// --------------------------------------------------- //
+// : Hypersomnia's Automatic Comic Generator           //
+// : Generates a random comic at a set interval        //
+// : > node main.js
+// --------------------------------------------------- // 
 const cron = require('node-cron');
 const Jimper = require('./modules/Jimper').constructors;
 const Panel = new Jimper.Panel();
