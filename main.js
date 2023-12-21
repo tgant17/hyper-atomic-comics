@@ -1,7 +1,8 @@
 // --------------------------------------------------- //
 // : Hypersomnia's Automatic Comic Generator           //
 // : Generates a random comic at a set interval        //
-// : > node main.js
+// : Version - 0.1.0                                   //
+// : > node main.js                                    // 
 // --------------------------------------------------- // 
 const cron = require('node-cron');
 const Jimper = require('./modules/Jimper').constructors;
