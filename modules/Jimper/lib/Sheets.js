@@ -45,8 +45,8 @@ Sheets.prototype.generateText = async (sheetId) => {
     ];
     
     const jwt = new JWT({
-      email: creds.client_email,
-      key: creds.private_key,
+      email: process.env.SHEETS_CLIENT_EMAIL,
+      key: process.env.SHEETS_PRIVATE_KEY.split(String.raw`\n`).join('\n'),
       scopes: SCOPES,
     });
 
