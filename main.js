@@ -1,11 +1,10 @@
 // --------------------------------------------------- //
 // : Hypersomnia's Automatic Comic Generator           //
 // : Generates a random comic at a set interval        //
-// : Version - 0.1.0                                   //
-// : > node main.js imageDir/                          // 
+// : Version - 1.1.0                                   //
+// : > node main.js <imageDir>/                          // 
 // --------------------------------------------------- // 
 require('dotenv').config();
-const cron = require('node-cron');
 const Jimper = require('./modules/Jimper').constructors;
 const Panel = new Jimper.Panel();
 const InstagramClient = new Jimper.InstagramClient();
@@ -29,7 +28,5 @@ const main = async () => {
     await InstagramClient.makeInstaPost('output.jpg');
 }
 
-cron.schedule('0 6 * * *', () => {
-    console.log('Running every morning at 6:00 :)\nAtomic Comic Generating...');
-    main();
-});
+console.log('Running every morning at 6:00 :)\nAtomic Comic Generating...');
+main();
