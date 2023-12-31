@@ -1,4 +1,3 @@
-const jimp = require('jimp');
 const fs = require('fs');
 
 function Helpers(){}
@@ -15,19 +14,20 @@ const parsePanelExtension = (filename) => {
     var end = filename.indexOf('.');
     var data = filename.slice(start+1, end);
     data = data.split('-');
-    return data.map(item => Number(item));
+    return data; 
 }   
 
 /**
- * Changes the color of a font passed in from jimp
- * @param {Object} {color: string, size: number} 
- * @returns {Object} {textImage: image, fontReference: string, color: string}
+ * Changes the color of a font
+ * @param {String} color 
+ * @returns {String} color 
  */
-Helpers.prototype.getColorFont = async (options) => {
-    var fontReference;
-    var {color, size} = options;
-
+Helpers.prototype.getColorFont = async (color) => {
     switch(color?.toLowerCase()) {
+        case 'black':
+            color = '#000000'; break;
+        case 'white':
+            color = '#FFFFFF'; break;
         case 'red':
             color = '#FF0000'; break;
         case 'blue':
@@ -36,36 +36,16 @@ Helpers.prototype.getColorFont = async (options) => {
             color = '#FFFF00'; break;
         case 'green': 
             color = '#008000'; break;
+        case 'lime': 
+            color = '#9cc764'; break;
+        case 'fire':
+            color = '#a06f33'; break;
         default: 
             color = "#" + ((1 << 24) * Math.random() | 0).toString(16).padStart(6, "0");
             break;
     };
-    switch(size) {
-        case 8: 
-            fontReference = 'FONT_SANS_8_BLACK'; break;
-        case 10: 
-            fontReference = 'FONT_SANS_10_BLACK'; break;
-        case 12: 
-            fontReference = 'FONT_SANS_12_BLACK'; break;
-        case 14: 
-            fontReference = 'FONT_SANS_14_BLACK'; break;
-        case 16: 
-            fontReference = 'FONT_SANS_16_BLACK'; break;
-        case 32: 
-            fontReference = 'FONT_SANS_32_BLACK'; break;
-        case 64: 
-            fontReference = 'FONT_SANS_64_BLACK'; break;
-        default: 
-            fontReference = 'FONT_SANS_32_BLACK'; break;
-    };
 
-    var textImage = new jimp(1000,1000, 0x0);
-    var fontReference = await jimp.loadFont(jimp[fontReference]);
-    return {
-        textImage, 
-        fontReference, 
-        color
-    };
+    return color;
 }
 
 /**
@@ -84,9 +64,10 @@ Helpers.prototype.getRandomPanel = (path) => {
 
     return {
         panel,
-        x: data[0], 
-        y: data[1],
-        width: data[2], 
-        lines: data[3],
+        x: Number(data[0]), 
+        y: Number(data[1]),
+        width: Number(data[2]), 
+        lines: Number(data[3]),
+        color: data[4]
     };
 }

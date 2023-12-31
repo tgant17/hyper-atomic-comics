@@ -1,6 +1,5 @@
 const {GoogleSpreadsheet} = require('google-spreadsheet');
 const {JWT} = require('google-auth-library');
-const creds = require('../../../peppy-linker-384511-5ae613a1c79e.json'); // the file saved above
 
 function Sheets(){}
 module.exports = Sheets;
@@ -54,7 +53,7 @@ Sheets.prototype.generateText = async (sheetId) => {
     await doc.loadInfo();
     const sheet = doc.sheetsByIndex[0];
     const rows = await sheet.getRows();
-    const columnLength = 2;
+    const columnLength = 3;
 
     return buildTextString(rows, columnLength);
 }

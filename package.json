@@ -1,19 +1,22 @@
 {
   "name": "atomiccomics",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Generates a random 4 panel comic and posts it onto Instagram. - https://www.instagram.com/hyper_atomic_comics/ ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node main.js PANELS/ >> log.txt"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "google-auth-library": "^9.4.1",
     "google-spreadsheet": "^4.1.1",
+    "instagram-web-api": "^2.2.2",
     "jimp": "^0.22.10",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "tough-cookie-filestore2": "^1.0.0"
   }
 }
