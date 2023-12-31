@@ -1,5 +1,4 @@
 const jimp = require('jimp');
-
 var Helpers = require('./Helpers');
 var Sheets = require('./Sheets');
 Helpers = new Helpers();
@@ -9,30 +8,48 @@ function Panel(){}
 module.exports = Panel;
 
 
+/**
+ * Creates a panel for the comic
+ * @param {String} directory 
+ * @returns Image
+ */
 Panel.prototype.createPanel = async (directory) => {
-    const {x, y, width, lines, panel} = Helpers.getRandomPanel(`${directory}/`);
-    
-    const image = await jimp.read(`images/${panel}`);
+    const {panel, x, y, width, lines, color} = Helpers.getRandomPanel(`${directory}/`);
+
+    const image = await jimp.read(`${directory}/${panel}`);
     const newImage = await image.clone();
 
     await newImage.resize(1000, 1000);
 
-    const {textImage, color, fontReference } = await Helpers.getColorFont({color: 'red', size: 32}); 
-    const text = await Sheets.generateText(width, lines);
+    const newColor = await Helpers.getColorFont(color ? color : ''); 
 
+    const text = await Sheets.generateText('171bb5GuNoslVI3YCSvi1aiq_prAQrzihgxZRCLHYjVk');
+    const font = await jimp.loadFont('fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt');
 
-    textImage.print(fontReference, x, y, text, width);
-    textImage.color([{apply: 'xor', params: [color]}]);
+    var textImage = new jimp(1000,1000, 0x0);
+    textImage.print(font, x, y, text, width);
+    textImage.color([{apply: 'xor', params: [newColor]}]);
     newImage.blit(textImage, 0, 0);
     return newImage; 
 }
 
-// images is an array
+/**
+ * Creates a comic with the each panel in the images array
+ * @param {Array} images [image, image, ...]
+ */
 Panel.prototype.createComic = async (images) => {
-    var comic = new jimp(images?.length*1000, 1000, 'white');
+    var size = Math.ceil(images.length/2);
+    var comic = new jimp(2000, size*1000, 'white');
     
     images?.forEach(async (image, i) => {
-            await comic.blit(image, i*1000,0);
+        var j = Math.floor(i/2);
+        if(i%2 === 0) {
+            await comic.blit(image, 0, j*1000);
+        }
+        else { 
+            await comic.blit(image, 1000, j*1000);
+        }
+
     });
-    comic.writeAsync(`output.png`);
+    return comic;
 }
