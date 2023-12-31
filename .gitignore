@@ -4,3 +4,5 @@ output.jpg
 package-lock.json
 peppy-linker-384511-5ae613a1c79e.json
 log.txt
+.env
+cookies.json
