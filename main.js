@@ -6,10 +6,6 @@
 // --------------------------------------------------- // 
 require('dotenv').config();
 const cron = require('node-cron');
-const express = require('express');
-const app = express();
-const port = process.env.PORT;
-
 const Jimper = require('./modules/Jimper').constructors;
 const Panel = new Jimper.Panel();
 const InstagramClient = new Jimper.InstagramClient();

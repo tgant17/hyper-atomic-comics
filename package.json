@@ -6,8 +6,11 @@
   "scripts": {
     "start": "node main.js PANELS/ >> log.txt"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Tristan Gant - tgant17",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
