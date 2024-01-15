@@ -62,7 +62,10 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
       await client.updateChallenge({ challengeUrl, choice: 1 });
       await instagramPost(client, comicPath);
     } else {
-      console.log(err);
+      console.log(err, 'EERROROEROREOERO');
     }
   });
 }
+
+
+// rewrite this hoe in a try catch and see if i can get vetter logging
