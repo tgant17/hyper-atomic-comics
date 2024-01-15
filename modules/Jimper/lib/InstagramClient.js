@@ -53,6 +53,7 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
     await instagramPost(client, comicPath);
 
   }).catch(async (err) => {
+    console.log('top of error func');
     if(err.error && err.error.message === 'checkpoint_required') {
       const challengeUrl = err.error.checkpoint_url;
       await client.updateChallenge({ challengeUrl, choice: 1 });
