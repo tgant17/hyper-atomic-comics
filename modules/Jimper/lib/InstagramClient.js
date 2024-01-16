@@ -75,17 +75,18 @@ const instagramPost = async (client, comicPath) => {
  * @param {String} comicPath 
  */
 InstagramClient.prototype.makeInstaPost = async (comicPath) => {
-  try {
-    const cookieStore = new FileCookieStore('./cookies.json');
-    const client = new Instagram({
-      username: INSTAGRAM_USER, 
-      password: INSTAGRAM_PASSWORD,
-      cookieStore
-    },
-    {
-      language: 'en-US'
-    });
+  const cookieStore = new FileCookieStore('./cookies.json');
+  const client = new Instagram({
+    username: INSTAGRAM_USER, 
+    password: INSTAGRAM_PASSWORD,
+    cookieStore
+  },
+  {
+    language: 'en-US'
+  });
 
+  // try and login
+  try {
     console.log('about to log in');
     await client.login({ 
       username: INSTAGRAM_USER, 
@@ -96,8 +97,6 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
     });
 
     console.log('LOGGED IN');
-
-
   }
   catch(error) {
     console.log('ERROR');
