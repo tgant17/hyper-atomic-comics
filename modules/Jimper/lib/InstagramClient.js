@@ -101,9 +101,9 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
   }
   catch(error) {
     console.log('ERROR');
-    if(err.error && err.error.message === 'checkpoint_required') {
+    if(error.error && error.error.message === 'checkpoint_required') {
       console.log('checkpoint');
-      var challengeUrl = err.error.checkpoint_url;
+      var challengeUrl = error.error.checkpoint_url;
       challengeUrl = challengeUrl.replace('https://www.instagram.com', '');
       await client.updateChallenge({ challengeUrl, choice: 1 });
       await client.login({ 
@@ -115,7 +115,7 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
       });
       await instagramPost(client, comicPath);
     } else {
-      console.log(err, 'EERROROEROREOERO');
+      console.log(error, 'EERROROEROREOERO');
     } 
   }
 }
