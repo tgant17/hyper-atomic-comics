@@ -88,7 +88,7 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
   // try and login
   try {
     console.log('about to log in');
-    await client.login({ 
+    const r = await client.login({ 
       username: INSTAGRAM_USER, 
       password: INSTAGRAM_PASSWORD 
     }, 
@@ -96,7 +96,7 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
       _sharedData: false
     });
 
-    console.log('LOGGED IN');
+    console.log('LOGGED IN', r);
   }
   catch(error) {
     console.log('ERROR');
