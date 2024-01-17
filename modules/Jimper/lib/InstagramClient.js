@@ -107,14 +107,20 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
       console.log(challengeUrl);
       await client.updateChallenge({ challengeUrl, choice: 1 });
       console.log('beat my case');
-      await client.login({ 
-        username: INSTAGRAM_USER, 
-        password: INSTAGRAM_PASSWORD 
-      }, 
-      {
-        _sharedData: false
-      });
-      await instagramPost(client, comicPath);
+      try {
+        await client.login({ 
+          username: INSTAGRAM_USER, 
+          password: INSTAGRAM_PASSWORD 
+        }, 
+        {
+          _sharedData: false
+        });
+        await instagramPost(client, comicPath);
+      }
+      catch(error) {
+        console.log(error);
+        console.log('NESTED ERROR');
+      }
     } else {
       console.log(error, 'EERROROEROREOERO');
     } 
