@@ -104,7 +104,9 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
       console.log('checkpoint');
       var challengeUrl = error.error.checkpoint_url;
       challengeUrl = challengeUrl.replace('https://www.instagram.com', '');
+      console.log(challengeUrl);
       await client.updateChallenge({ challengeUrl, choice: 1 });
+      console.log('beat my case');
       await client.login({ 
         username: INSTAGRAM_USER, 
         password: INSTAGRAM_PASSWORD 
