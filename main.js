@@ -28,5 +28,5 @@ const main = async () => {
     await InstagramClient.makeInstaPost('output.jpg');
 }
 
-console.log('Running every morning at 6:00 :)\nAtomic Comic Generating...');
+console.log('Running every morning at 7:00am :)\nOr when kabuto wakes.\nAtomic Comic Generating...');
 main();
