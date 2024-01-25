@@ -2,10 +2,11 @@
 // : Hypersomnia's Automatic Comic Generator           //
 // : Generates a random comic at a set interval        //
 // : Version - 1.1.0                                   //
-// : > node main.js <imageDir>/                          // 
+// : > node main.js <imageDir>/                        // 
 // --------------------------------------------------- // 
 require('dotenv').config();
-const Jimper = require('./modules/Jimper').constructors;
+const path = require('path');
+const Jimper = require(path.join(__dirname, 'modules/Jimper')).constructors;
 const Panel = new Jimper.Panel();
 const InstagramClient = new Jimper.InstagramClient();
 

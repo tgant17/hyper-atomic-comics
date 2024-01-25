@@ -40,6 +40,8 @@ Helpers.prototype.getColorFont = async (color) => {
             color = '#9cc764'; break;
         case 'fire':
             color = '#a06f33'; break;
+        case 'fog':
+            color = '#49637b'; break;
         default: 
             color = "#" + ((1 << 24) * Math.random() | 0).toString(16).padStart(6, "0");
             break;

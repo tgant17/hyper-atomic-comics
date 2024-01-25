@@ -52,5 +52,18 @@ InstagramClient.prototype.makeInstaPost = async (comicPath) => {
     console.log('Login successful.');
     await instagramPost(client, comicPath);
 
-  }).catch((err) => console.log(err));
+  }).catch(async (err) => {
+    console.log('NOT LOGGED IN');
+    console.log('Attempting to login again...');
+    await client.login({
+      username: INSTAGRAM_USER,
+      password: INSTAGRAM_PASSWORD
+    })
+    .then(async () => {
+      console.log('Login successful.');
+      await instagramPost(client, comicPath);
+    }).catch(async (err) => {
+      console.log(err);
+    });
+  });
 }

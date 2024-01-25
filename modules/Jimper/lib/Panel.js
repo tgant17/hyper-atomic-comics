@@ -1,6 +1,7 @@
 const jimp = require('jimp');
-var Helpers = require('./Helpers');
-var Sheets = require('./Sheets');
+const path = require('path');
+var Helpers = require(path.join(__dirname, 'Helpers'));
+var Sheets = require(path.join(__dirname, 'Sheets'));
 Helpers = new Helpers();
 Sheets = new Sheets();
 
@@ -24,7 +25,7 @@ Panel.prototype.createPanel = async (directory) => {
     const newColor = await Helpers.getColorFont(color ? color : ''); 
 
     const text = await Sheets.generateText('171bb5GuNoslVI3YCSvi1aiq_prAQrzihgxZRCLHYjVk');
-    const font = await jimp.loadFont('fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt');
+    const font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
 
     var textImage = new jimp(1000,1000, 0x0);
     textImage.print(font, x, y, text, width);
