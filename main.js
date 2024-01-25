@@ -1,7 +1,7 @@
 // --------------------------------------------------- //
 // : Hypersomnia's Automatic Comic Generator           //
 // : Generates a random comic at a set interval        //
-// : Version - 1.1.0                                   //
+// : Version - 1.3.0                                   //
 // : > node main.js <imageDir>/                        // 
 // --------------------------------------------------- // 
 require('dotenv').config();
@@ -20,11 +20,12 @@ const main = async () => {
         return
     }
     const imagePath = process.argv[2];
+    const backgroundPath = process.argv[3];
     const panel = await Panel.createPanel(imagePath); 
     const panel2 = await Panel.createPanel(imagePath); 
     const panel3 = await Panel.createPanel(imagePath); 
     const panel4 = await Panel.createPanel(imagePath); 
-    const comic = await Panel.createComic([panel, panel2, panel3, panel4]);
+    const comic = await Panel.createComic(backgroundPath, [panel, panel2, panel3, panel4]);
     await comic.writeAsync(`output.jpg`);
     await InstagramClient.makeInstaPost('output.jpg');
 }

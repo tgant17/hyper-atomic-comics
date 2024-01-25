@@ -36,21 +36,46 @@ Panel.prototype.createPanel = async (directory) => {
 
 /**
  * Creates a comic with the each panel in the images array
+ * @param {String} backgroundPath
  * @param {Array} images [image, image, ...]
  */
-Panel.prototype.createComic = async (images) => {
-    var size = Math.ceil(images.length/2);
-    var comic = new jimp(2000, size*1000, 'white');
+Panel.prototype.createComic = async (backgroundPath, images) => {
+    var {background, color} = Helpers.getRandomBackground(`${backgroundPath}/`);
+    var comic = await jimp.read(`${backgroundPath}/${background}`)
+
+    var newComic = await comic.clone();
+    await newComic.resize(2000, 2000);
     
     images?.forEach(async (image, i) => {
         var j = Math.floor(i/2);
         if(i%2 === 0) {
-            await comic.blit(image, 0, j*1000);
+            await newComic.blit(image, 0, j*1000);
         }
         else { 
-            await comic.blit(image, 1000, j*1000);
+            await newComic.blit(image, 1000, j*1000);
         }
-
     });
-    return comic;
+
+    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    var newColor = await Helpers.getColorFont(color ? color : '');
+
+    // top text
+    var textImage = new jimp(2000, 2000, 0x0);
+    textImage.print(font, 60, 10, 'Comic Title', 400);
+    textImage.color([{apply: 'xor', params: [newColor]}]);
+    newComic.blit(textImage, 0, 0);
+
+    // bottom left text
+    var textImage2 = new jimp(2000, 2000, 0x0);
+    textImage2.print(font, 60, 1940, 'For more check out: hypersomnia.store', 1500);
+    textImage2.color([{apply: 'xor', params: [newColor]}]);
+    newComic.blit(textImage2, 0, 0);
+
+    // bottom right text
+    var textImage3 = new jimp(2000, 2000, 0x0);
+    textImage3.print(font, 1650, 1940, '@hyperzzzomnia', 1500);
+    textImage3.color([{apply: 'xor', params: [newColor]}]);
+    newComic.blit(textImage3, 0, 0);
+
+    return newComic;
 }

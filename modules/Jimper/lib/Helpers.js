@@ -73,3 +73,24 @@ Helpers.prototype.getRandomPanel = (path) => {
         color: data[4]
     };
 }
+
+/**
+ * Gets random panel from provided path
+ * @param {String} path Path to directory of backgrounds
+ * @returns {Object} Configurations about the background
+ */
+Helpers.prototype.getRandomBackground = (path) => {
+    var backgrounds = fs.readdirSync(path);
+    backgrounds = backgrounds.filter((b) => {
+        var temp = b.match(/^\./g);
+        return !temp;
+    });
+
+    var background = backgrounds[Math.floor(Math.random()*backgrounds.length)];
+    var data = parsePanelExtension(background);
+
+    return {
+        background,
+        color: data[0]
+    };
+}
