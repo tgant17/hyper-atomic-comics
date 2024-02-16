@@ -151,7 +151,7 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
         }
     });
     caption += `\n\nGenerated at ${time} - ${date}`
-    caption += `\n\n\n\n#comic #random #generator #comicstrips #automation #ai #ghost #alien #art #cartoon #handdrawn #drawing`;
+    caption += `\n\n\n\n#comic #random #generator #comicstrips #automation #ghost #alien #art #cartoon #handdrawn #drawing`;
     
     console.log(talkingChars);
     console.log(`Background -- ${background}`);
