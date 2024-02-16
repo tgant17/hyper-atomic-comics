@@ -62,7 +62,6 @@ const addPanelText = async (panel, x, y, width, text, color) => {
     return;
 }
 
-
 /**
  * Creates a panel for the comic
  * @param {String} directory 
@@ -95,7 +94,6 @@ const createPanel = async (directory, focus, first) => {
             }
         }
     }
-    console.log('Panel      -- ', panel);
 
     const image = await jimp.read(`${directory}/${panel}`);
     const newImage = await image.clone();
@@ -109,7 +107,8 @@ const createPanel = async (directory, focus, first) => {
         x, 
         y,
         width, 
-        talkingChar
+        talkingChar,
+        path: panel
     }; 
     return panelData
 }
@@ -123,8 +122,7 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
     var {background, color} = Helpers.getRandomBackground(`${backgroundPath}/`);
     var comic = await jimp.read(`${backgroundPath}/${background}`);
 
-    // make this an ENV var
-    var {seed, title} = await Sheets.getComicSeed(process.env.SHEETS_KEY);
+    var {seed, title, adjective, noun} = await Sheets.getComicSeed(process.env.SHEETS_KEY);
 
     var newComic = await comic.clone();
     await newComic.resize(2000, 2000);
@@ -135,12 +133,32 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
     var panel4 = await createPanel(panelPath, panel3.mainChar);
     
     const images = [panel, panel2, panel3, panel4];
-    const talkingChars = panel.talkingChar + panel2.talkingChar + panel3.talkingChar + panel4.talkingChar
+    var talkingChars = panel.talkingChar + panel2.talkingChar + panel3.talkingChar + panel4.talkingChar
+    var fullNameChars = Helpers.getFullNameCharacters(talkingChars);
+    var {date, time} = Helpers.getCurrentDate();
+
+    var caption = `"${adjective} ${noun}" is a comic about `;
+    fullNameChars.forEach((item, i) => {
+        caption += `${item}`;
+        if(i+1 !== fullNameChars.length) {
+            if(i+2 === fullNameChars.length) {
+
+                caption += ' and '
+            }
+            else {
+                caption += ', '
+            }
+        }
+    });
+    caption += `\n\nGenerated at ${time} - ${date}`
+    caption += `\n\n\n\n#comic #random #generator #comicstrips #automation #ai #ghost #alien #art #cartoon #handdrawn #drawing`;
     
-    console.log('Background -- ', background);
-    console.log('Title      -- ', title);
-    console.log('Seed       -- ', seed);
-    console.log('Characters -- ', talkingChars);
+    console.log(talkingChars);
+    console.log(`Background -- ${background}`);
+    images.forEach((item) => {
+        console.log(`Panel      -- ${item.path}`);
+    });
+    console.log(caption);
 
     var text = await OpenAI.generateComicText(seed, title, talkingChars);
     text = text.conversation;
@@ -161,5 +179,5 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
     }));
     
     var finishedComic = await addTitleText(newComic, title, color);
-    return finishedComic;
+    return {finishedComic, caption};
 }

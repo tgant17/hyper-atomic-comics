@@ -38,10 +38,14 @@ Sheets.prototype.getComicSeed = async (sheetId) => {
     const rows = await sheet.getRows();
 
     var seed = getRandomRow(rows, 'Phrases');
-    var title = `${getRandomRow(rows, 'Adjectives')} ${getRandomRow(rows, 'Nouns')}`;
+    var noun = `${getRandomRow(rows, 'Nouns')}`;
+    var adjective = `${getRandomRow(rows, 'Adjectives')}`;
+    var title = `${adjective} ${noun}`;
 
     return {
         seed,
-        title
+        title,
+        noun,
+        adjective
     }
 }

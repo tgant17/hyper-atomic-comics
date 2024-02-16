@@ -120,3 +120,47 @@ Helpers.prototype.getRandomBackground = (path) => {
         color: data[0]
     };
 }
+
+/**
+ * Gets the fullname of all characters in the character string
+ * @param {String} characters 'abac'
+ * @returns {Array} {Characters}
+ */
+Helpers.prototype.getFullNameCharacters = (characters) => {
+    var set = new Set();
+    for(char of characters) {
+        if(char === 'z' || char === 'o' || char === 'y') continue;
+        set.add(char);
+    }
+    var charMap = {
+        'a': 'Alien',
+        'c': 'Campfire',
+        'f': 'Foggy',
+        'r': 'Robert',
+        't': 'Toast Ghost',
+    }
+
+    var fullNameChars = [];
+    for(char of set) {
+        fullNameChars.push(charMap[char]);
+    }
+    return fullNameChars;
+}
+
+/**
+ * Gets current date and time
+ * @returns {Object} Current Date and Time
+ */
+Helpers.prototype.getCurrentDate = () => {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+    var ss = today.getSeconds();
+    var MM = today.getMinutes();
+    var HH = today.getHours()
+
+    var date = mm + '/' + dd + '/' + yyyy;
+    var time = `${HH}:${MM}:${ss}`;
+    return {date, time};
+}
