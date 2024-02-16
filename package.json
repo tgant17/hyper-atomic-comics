@@ -18,6 +18,7 @@
     "google-spreadsheet": "^4.1.1",
     "instagram-web-api": "^2.2.2",
     "jimp": "^0.22.10",
+    "openai": "^4.26.0",
     "tough-cookie-filestore2": "^1.0.0"
   }
 }

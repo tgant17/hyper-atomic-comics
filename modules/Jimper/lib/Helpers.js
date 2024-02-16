@@ -18,6 +18,29 @@ const parsePanelExtension = (filename) => {
 }   
 
 /**
+ * Gets the main character for the comic based on characters in the first panel (randomly)
+ * @param {String} charString ex 'abac'
+ * @returns {String} Main character
+ */
+const parseCharacterMap = (charString) => {
+    if(charString.length === 1) {
+        if(charString[0] === 'z') return false;
+        return charString[0];
+    }
+    return charString[Math.floor(Math.random()*charString.length)];
+}
+
+/**
+ * Gets characters in the panel
+ * @param {String} filename
+ * @returns {String} 
+ */
+Helpers.prototype.getCharacters = (filename) => {
+    var data = parsePanelExtension(filename);
+    return data[0];
+}
+
+/**
  * Changes the color of a font
  * @param {String} color 
  * @returns {String} color 
@@ -64,14 +87,17 @@ Helpers.prototype.getRandomPanel = (path) => {
     var panel = panels[Math.floor(Math.random()*panels.length)];
     var data = parsePanelExtension(panel);
 
-    return {
+    var panelData = {
         panel,
-        x: Number(data[0]), 
-        y: Number(data[1]),
-        width: Number(data[2]), 
-        lines: Number(data[3]),
-        color: data[4]
+        mainChar: parseCharacterMap(data[0]),
+        talkingChar: data[0][0],
+        x: Number(data[1]), 
+        y: Number(data[2]),
+        width: Number(data[3]), 
+        lines: Number(data[4]), 
+        color: data[5]
     };
+    return panelData;
 }
 
 /**

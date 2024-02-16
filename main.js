@@ -15,17 +15,14 @@ const InstagramClient = new Jimper.InstagramClient();
  * Creates 4 panels and combines them all into one comic
  */
 const main = async () => {
-    if(process.argv.length < 3) {
-        console.error('3 Arguments must be provided!');
+    if(process.argv.length < 4) {
+        console.error('4 Arguments must be provided!');
         return
     }
     const imagePath = process.argv[2];
     const backgroundPath = process.argv[3];
-    const panel = await Panel.createPanel(imagePath); 
-    const panel2 = await Panel.createPanel(imagePath); 
-    const panel3 = await Panel.createPanel(imagePath); 
-    const panel4 = await Panel.createPanel(imagePath); 
-    const comic = await Panel.createComic(backgroundPath, [panel, panel2, panel3, panel4]);
+
+    const comic = await Panel.createComic(backgroundPath, imagePath);
     await comic.writeAsync(`output.jpg`);
     await InstagramClient.makeInstaPost('output.jpg');
 }
