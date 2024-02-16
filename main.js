@@ -22,9 +22,9 @@ const main = async () => {
     const imagePath = process.argv[2];
     const backgroundPath = process.argv[3];
 
-    const comic = await Panel.createComic(backgroundPath, imagePath);
-    await comic.writeAsync(`output.jpg`);
-    await InstagramClient.makeInstaPost('output.jpg');
+    const {finishedComic, caption} = await Panel.createComic(backgroundPath, imagePath);
+    await finishedComic.writeAsync(`output.jpg`);
+    await InstagramClient.postToInsta('output.jpg', caption);
 }
 
 console.log('Running every morning at 7:00am :)\nOr when kabuto wakes.\nAtomic Comic Generating...');

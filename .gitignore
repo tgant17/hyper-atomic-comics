@@ -3,7 +3,6 @@ output.jpg
 package-lock.json
 log.txt
 .env
-cookies.json
 sheets-key.json
 PANELS/
 .DS_STORE
