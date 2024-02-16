@@ -1,12 +1,66 @@
-const jimp = require('jimp');
-const path = require('path');
+const jimp  = require('jimp');
+const path  = require('path');
+var OpenAI  = require(path.join(__dirname, 'OpenAi'));
 var Helpers = require(path.join(__dirname, 'Helpers'));
-var Sheets = require(path.join(__dirname, 'Sheets'));
+var Sheets  = require(path.join(__dirname, 'Sheets'));
+
 Helpers = new Helpers();
 Sheets = new Sheets();
+OpenAI = new OpenAI();
 
 function Panel(){}
 module.exports = Panel;
+
+/**
+ * Adds the title and supporting text to the comic
+ * @param {Image} comic 
+ * @param {String} title 
+ * @param {String} color 
+ * @returns Image
+ */
+const addTitleText = async (comic, title, color) => {
+
+    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    var newColor = await Helpers.getColorFont(color ? color : '');
+
+    // top text
+    var textImage = new jimp(2000, 2000, 0x0);
+    textImage.print(font, 60, 10, title, 1000);
+    textImage.color([{apply: 'xor', params: [newColor]}]);
+    comic.blit(textImage, 0, 0);
+
+    // bottom left text
+    var textImage2 = new jimp(2000, 2000, 0x0);
+    textImage2.print(font, 60, 1940, 'For more check out: hypersomnia.store', 1500);
+    textImage2.color([{apply: 'xor', params: [newColor]}]);
+    comic.blit(textImage2, 0, 0);
+
+    // bottom right text
+    var textImage3 = new jimp(2000, 2000, 0x0);
+    textImage3.print(font, 1650, 1940, '@hyperzzzomnia', 1500);
+    textImage3.color([{apply: 'xor', params: [newColor]}]);
+    comic.blit(textImage3, 0, 0);
+
+    return comic;
+}
+
+/**
+ * Adds text to a panel
+ * @param {Jimp{Image}} panel 
+ * @param {*} options panel options
+ * @returns null
+ */
+const addPanelText = async (panel, x, y, width, text, color) => {
+    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    var textImage = new jimp(1000,1000, 0x0);
+    var newColor = await Helpers.getColorFont(color ? color : ''); 
+
+    textImage.print(font, x, y, text, width);
+    textImage.color([{apply: 'xor', params: [newColor]}]);
+
+    await panel.blit(textImage, 0, 0);
+    return;
+}
 
 
 /**
@@ -14,43 +68,98 @@ module.exports = Panel;
  * @param {String} directory 
  * @returns Image
  */
-Panel.prototype.createPanel = async (directory) => {
-    const {panel, x, y, width, lines, color} = Helpers.getRandomPanel(`${directory}/`);
+const createPanel = async (directory, focus, first) => {
+    var {panel, 
+         mainChar, 
+         x, 
+         y, 
+         width, 
+         lines, 
+         color, 
+         talkingChar} = Helpers.getRandomPanel(`${directory}/`);
+
+    // if focus exists and the current panel is not a transition 
+    if(focus && mainChar !== 'z') {
+        while(mainChar !== focus) {
+            var {panel, 
+                mainChar, 
+                x, 
+                y, 
+                width, 
+                lines, 
+                color, 
+                talkingChar} = Helpers.getRandomPanel(`${directory}/`);
+            var chars = Helpers.getCharacters(panel);
+            if(chars.includes(focus)) {
+                mainChar = focus;
+            }
+        }
+    }
+    console.log('Panel      -- ', panel);
 
     const image = await jimp.read(`${directory}/${panel}`);
     const newImage = await image.clone();
 
     await newImage.resize(1000, 1000);
 
-    const newColor = await Helpers.getColorFont(color ? color : ''); 
-
-    const text = await Sheets.generateText('171bb5GuNoslVI3YCSvi1aiq_prAQrzihgxZRCLHYjVk');
-    const font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
-
-    var textImage = new jimp(1000,1000, 0x0);
-    textImage.print(font, x, y, text, width);
-    textImage.color([{apply: 'xor', params: [newColor]}]);
-    newImage.blit(textImage, 0, 0);
-    return newImage; 
+    var panelData = {
+        panel: newImage, 
+        mainChar,
+        color,
+        x, 
+        y,
+        width, 
+        talkingChar
+    }; 
+    return panelData
 }
 
 /**
- * Creates a comic with the each panel in the images array
- * @param {Array} images [image, image, ...]
+ * Creates a 4 panel comic
+ * @param {String} backgroundPath 
+ * @param {String} panelPath
  */
-Panel.prototype.createComic = async (images) => {
-    var size = Math.ceil(images.length/2);
-    var comic = new jimp(2000, size*1000, 'white');
+Panel.prototype.createComic = async (backgroundPath, panelPath) => {
+    var {background, color} = Helpers.getRandomBackground(`${backgroundPath}/`);
+    var comic = await jimp.read(`${backgroundPath}/${background}`);
+
+    // make this an ENV var
+    var {seed, title} = await Sheets.getComicSeed(process.env.SHEETS_KEY);
+
+    var newComic = await comic.clone();
+    await newComic.resize(2000, 2000);
+
+    var panel = await createPanel(panelPath, null);
+    var panel2 = await createPanel(panelPath, panel.mainChar);
+    var panel3 = await createPanel(panelPath, panel2.mainChar);
+    var panel4 = await createPanel(panelPath, panel3.mainChar);
     
-    images?.forEach(async (image, i) => {
+    const images = [panel, panel2, panel3, panel4];
+    const talkingChars = panel.talkingChar + panel2.talkingChar + panel3.talkingChar + panel4.talkingChar
+    
+    console.log('Background -- ', background);
+    console.log('Title      -- ', title);
+    console.log('Seed       -- ', seed);
+    console.log('Characters -- ', talkingChars);
+
+    var text = await OpenAI.generateComicText(seed, title, talkingChars);
+    text = text.conversation;
+    console.log('Text       -- ', text);
+
+    await Promise.all(images.map(async (image, i) => {
+        var {panel, x, y, width, color} = image;
         var j = Math.floor(i/2);
+
         if(i%2 === 0) {
-            await comic.blit(image, 0, j*1000);
+            await addPanelText(panel, x, y, width, text[i], color);
+            await newComic.blit(panel, 0, j*1000);
         }
         else { 
-            await comic.blit(image, 1000, j*1000);
+            await addPanelText(panel, x, y, width, text[i], color);
+            await newComic.blit(panel, 1000, j*1000);
         }
-
-    });
-    return comic;
+    }));
+    
+    var finishedComic = await addTitleText(newComic, title, color);
+    return finishedComic;
 }
