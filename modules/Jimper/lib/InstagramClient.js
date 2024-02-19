@@ -1,12 +1,11 @@
 const { IgApiClient, IgLoginTwoFactorRequiredError } = require('instagram-private-api');
 const { readFile } = require('fs');
 const { promisify } = require('util');
-const fs = require('fs');
+const readFileAsync = promisify(readFile);
 
 const { INSTAGRAM_USER, INSTAGRAM_PASSWORD } = process.env;
 const time = Math.floor(Date.now() / 1000); // Get current time in seconds
 const strTime = String(time);
-const PASSWORD = '#PWD_INSTAGRAM_BROWSER:0:' + strTime + ':' + INSTAGRAM_PASSWORD;
 
 function InstagramClient(){}
 
