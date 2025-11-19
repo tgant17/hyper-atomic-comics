@@ -1,12 +1,22 @@
 const jimp  = require('jimp');
 const path  = require('path');
-var OpenAI  = require(path.join(__dirname, 'OpenAi'));
-var Helpers = require(path.join(__dirname, 'Helpers'));
-var Sheets  = require(path.join(__dirname, 'Sheets'));
+const OpenAIConstructor  = require('./OpenAi');
+const HelpersConstructor = require('./Helpers');
+const SheetsConstructor  = require('./Sheets');
 
-Helpers = new Helpers();
-Sheets = new Sheets();
-OpenAI = new OpenAI();
+const Helpers = new HelpersConstructor();
+const Sheets = new SheetsConstructor();
+const OpenAI = new OpenAIConstructor();
+
+const FONT_PATH = path.join(process.cwd(), 'fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt');
+let cachedFont;
+
+const getFont = async () => {
+    if (!cachedFont) {
+        cachedFont = await jimp.loadFont(FONT_PATH);
+    }
+    return cachedFont;
+};
 
 function Panel(){}
 module.exports = Panel;
@@ -16,16 +26,18 @@ module.exports = Panel;
  * @param {Image} comic 
  * @param {String} title 
  * @param {String} color 
+ * @param {String} comicCount  
  * @returns Image
  */
-const addTitleText = async (comic, title, color) => {
+const addTitleText = async (comic, title, color, comicCount) => {
 
-    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    const font = await getFont();
     var newColor = await Helpers.getColorFont(color ? color : '');
+    let completeTitle = `Comic #${comicCount} * ${title}`;
 
     // top text
     var textImage = new jimp(2000, 2000, 0x0);
-    textImage.print(font, 60, 10, title, 1000);
+    textImage.print(font, 60, 10, completeTitle, 1000);
     textImage.color([{apply: 'xor', params: [newColor]}]);
     comic.blit(textImage, 0, 0);
 
@@ -51,7 +63,7 @@ const addTitleText = async (comic, title, color) => {
  * @returns null
  */
 const addPanelText = async (panel, x, y, width, text, color) => {
-    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    const font = await getFont();
     var textImage = new jimp(1000,1000, 0x0);
     var newColor = await Helpers.getColorFont(color ? color : ''); 
 
@@ -67,7 +79,7 @@ const addPanelText = async (panel, x, y, width, text, color) => {
  * @param {String} directory 
  * @returns Image
  */
-const createPanel = async (directory, focus, first) => {
+const createPanel = async (directory, focus) => {
     var {panel, 
          mainChar, 
          x, 
@@ -95,7 +107,7 @@ const createPanel = async (directory, focus, first) => {
         }
     }
 
-    const image = await jimp.read(`${directory}/${panel}`);
+    const image = await jimp.read(path.join(directory, panel));
     const newImage = await image.clone();
 
     await newImage.resize(1000, 1000);
@@ -118,11 +130,17 @@ const createPanel = async (directory, focus, first) => {
  * @param {String} backgroundPath 
  * @param {String} panelPath
  */
-Panel.prototype.createComic = async (backgroundPath, panelPath) => {
+Panel.prototype.createComic = async (backgroundPath, panelPath, comicCount) => {
     var {background, color} = Helpers.getRandomBackground(`${backgroundPath}/`);
-    var comic = await jimp.read(`${backgroundPath}/${background}`);
+    var comic = await jimp.read(path.join(backgroundPath, background));
 
     var {seed, title, adjective, noun} = await Sheets.getComicSeed(process.env.SHEETS_KEY);
+    var metadata = {
+        seed,
+        title,
+        adjective,
+        noun
+    };
 
     var newComic = await comic.clone();
     await newComic.resize(2000, 2000);
@@ -167,17 +185,24 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
     await Promise.all(images.map(async (image, i) => {
         var {panel, x, y, width, color} = image;
         var j = Math.floor(i/2);
+        var line = Array.isArray(text) ? text[i] ?? '' : '';
 
         if(i%2 === 0) {
-            await addPanelText(panel, x, y, width, text[i], color);
+            await addPanelText(panel, x, y, width, line, color);
             await newComic.blit(panel, 0, j*1000);
         }
         else { 
-            await addPanelText(panel, x, y, width, text[i], color);
+            await addPanelText(panel, x, y, width, line, color);
             await newComic.blit(panel, 1000, j*1000);
         }
     }));
     
-    var finishedComic = await addTitleText(newComic, title, color);
-    return {finishedComic, caption};
+    var finishedComic = await addTitleText(newComic, title, color, comicCount);
+    metadata = {
+        ...metadata,
+        background,
+        talkingChars,
+        panels: images.map((item) => item.path)
+    };
+    return {finishedComic, caption, metadata};
 }
