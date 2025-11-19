@@ -8,6 +8,16 @@ const Helpers = new HelpersConstructor();
 const Sheets = new SheetsConstructor();
 const OpenAI = new OpenAIConstructor();
 
+const FONT_PATH = path.join(process.cwd(), 'fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt');
+let cachedFont;
+
+const getFont = async () => {
+    if (!cachedFont) {
+        cachedFont = await jimp.loadFont(FONT_PATH);
+    }
+    return cachedFont;
+};
+
 function Panel(){}
 module.exports = Panel;
 
@@ -20,7 +30,7 @@ module.exports = Panel;
  */
 const addTitleText = async (comic, title, color) => {
 
-    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    const font = await getFont();
     var newColor = await Helpers.getColorFont(color ? color : '');
 
     // top text
@@ -51,7 +61,7 @@ const addTitleText = async (comic, title, color) => {
  * @returns null
  */
 const addPanelText = async (panel, x, y, width, text, color) => {
-    var font = await jimp.loadFont(path.join(__dirname, '../../../fonts/ComicFontBold.ttf/mTqaubS5npJOK_UcXGL9wFgs.ttf.fnt'));
+    const font = await getFont();
     var textImage = new jimp(1000,1000, 0x0);
     var newColor = await Helpers.getColorFont(color ? color : ''); 
 
