@@ -1,12 +1,12 @@
 const jimp  = require('jimp');
 const path  = require('path');
-var OpenAI  = require(path.join(__dirname, 'OpenAi'));
-var Helpers = require(path.join(__dirname, 'Helpers'));
-var Sheets  = require(path.join(__dirname, 'Sheets'));
+const OpenAIConstructor  = require('./OpenAi.js');
+const HelpersConstructor = require('./Helpers.js');
+const SheetsConstructor  = require('./Sheets.js');
 
-Helpers = new Helpers();
-Sheets = new Sheets();
-OpenAI = new OpenAI();
+const Helpers = new HelpersConstructor();
+const Sheets = new SheetsConstructor();
+const OpenAI = new OpenAIConstructor();
 
 function Panel(){}
 module.exports = Panel;
