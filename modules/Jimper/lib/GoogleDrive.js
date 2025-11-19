@@ -47,14 +47,23 @@ const getFileCount = async () => {
 	const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; 
 	const drive = await getDriveClient();
 
-	const response = await drive.files.list({
-		q: `'${folderId}' in parents`,
-		fields: 'files(id)',
-	});
+	let pageToken;
+	let total = 0;
 
-	const fileCount = response.data.files.length;
-	console.log(fileCount);
-	return fileCount; 
+	do {
+		const response = await drive.files.list({
+			q: `'${folderId}' in parents`,
+			fields: 'nextPageToken, files(id)',
+			pageSize: 1000,
+			pageToken
+		});
+
+		total += response.data.files?.length ?? 0;
+		pageToken = response.data.nextPageToken || null;
+	} while (pageToken);
+
+	console.log(total);
+	return total; 
 };
 
 const getLatestFileTimestamp = async () => {

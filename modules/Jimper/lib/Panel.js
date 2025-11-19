@@ -77,33 +77,44 @@ const addPanelText = async (panel, x, y, width, text, color) => {
  * @param {String} directory 
  * @returns Image
  */
-const createPanel = async (directory, focus, first) => {
-    var {panel, 
-         mainChar, 
-         x, 
-         y, 
-         width, 
-         lines, 
-         color, 
-         talkingChar} = Helpers.getRandomPanel(`${directory}/`);
+const createPanel = async (directory, focus, allowedCharacters) => {
+    const allowedSet = Array.isArray(allowedCharacters) && allowedCharacters.length
+        ? new Set(allowedCharacters)
+        : null;
+    const MAX_ITERATIONS = 600;
+    let attempt = 0;
+    let selectedPanel;
 
-    // if focus exists and the current panel is not a transition 
-    if(focus && mainChar !== 'z') {
-        while(mainChar !== focus) {
-            var {panel, 
-                mainChar, 
-                x, 
-                y, 
-                width, 
-                lines, 
-                color, 
-                talkingChar} = Helpers.getRandomPanel(`${directory}/`);
-            var chars = Helpers.getCharacters(panel);
-            if(chars.includes(focus)) {
-                mainChar = focus;
-            }
+    while (attempt < MAX_ITERATIONS) {
+        attempt++;
+        var {panel, 
+            mainChar, 
+            x, 
+            y, 
+            width, 
+            lines, 
+            color, 
+            talkingChar} = Helpers.getRandomPanel(`${directory}/`);
+
+        const availableChars = Helpers.getCharacters(panel);
+        const matchesAllowed = !allowedSet || [...availableChars].some((char) => allowedSet.has(char));
+        const matchesFocus =
+            !focus ||
+            mainChar === focus ||
+            mainChar === 'z' ||
+            !mainChar;
+
+        if (matchesAllowed && matchesFocus) {
+            selectedPanel = { panel, mainChar, x, y, width, lines, color, talkingChar };
+            break;
         }
     }
+
+    if (!selectedPanel) {
+        selectedPanel = Helpers.getRandomPanel(`${directory}/`);
+    }
+
+    var { panel, mainChar, x, y, width, lines, color, talkingChar } = selectedPanel;
 
     const image = await jimp.read(`${directory}/${panel}`);
     const newImage = await image.clone();
@@ -117,6 +128,7 @@ const createPanel = async (directory, focus, first) => {
         x, 
         y,
         width, 
+        lines,
         talkingChar,
         path: panel
     }; 
@@ -128,19 +140,40 @@ const createPanel = async (directory, focus, first) => {
  * @param {String} backgroundPath 
  * @param {String} panelPath
  */
-Panel.prototype.createComic = async (backgroundPath, panelPath) => {
+Panel.prototype.createComic = async (backgroundPath, panelPath, options = {}) => {
+    const allowedCharacters = Array.isArray(options.characters)
+        ? options.characters.filter(Boolean)
+        : [];
+    const hasCustomSeed =
+        options?.seedPhrase?.adjective?.trim() && options?.seedPhrase?.noun?.trim();
+
     var {background, color} = Helpers.getRandomBackground(`${backgroundPath}/`);
     var comic = await jimp.read(`${backgroundPath}/${background}`);
+    let seedData;
 
-    var {seed, title, adjective, noun} = await Sheets.getComicSeed(process.env.SHEETS_KEY);
+    if (hasCustomSeed) {
+        const adjective = options.seedPhrase.adjective.trim();
+        const noun = options.seedPhrase.noun.trim();
+        const combined = `${adjective} ${noun}`;
+        seedData = {
+            seed: combined,
+            title: combined,
+            adjective,
+            noun
+        };
+    } else {
+        seedData = await Sheets.getComicSeed(process.env.SHEETS_KEY);
+    }
+
+    var {seed, title, adjective, noun} = seedData;
 
     var newComic = await comic.clone();
     await newComic.resize(2000, 2000);
 
-    var panel = await createPanel(panelPath, null);
-    var panel2 = await createPanel(panelPath, panel.mainChar);
-    var panel3 = await createPanel(panelPath, panel2.mainChar);
-    var panel4 = await createPanel(panelPath, panel3.mainChar);
+    var panel = await createPanel(panelPath, null, allowedCharacters);
+    var panel2 = await createPanel(panelPath, panel.mainChar, allowedCharacters);
+    var panel3 = await createPanel(panelPath, panel2.mainChar, allowedCharacters);
+    var panel4 = await createPanel(panelPath, panel3.mainChar, allowedCharacters);
     
     const images = [panel, panel2, panel3, panel4];
     var talkingChars = panel.talkingChar + panel2.talkingChar + panel3.talkingChar + panel4.talkingChar
@@ -189,5 +222,19 @@ Panel.prototype.createComic = async (backgroundPath, panelPath) => {
     }));
     
     var finishedComic = await addTitleText(newComic, title, color);
-    return {finishedComic, caption};
+
+    const metadata = {
+        title,
+        adjective,
+        noun,
+        seed,
+        background,
+        talkingChars,
+        characters: fullNameChars,
+        selectedCharacters: allowedCharacters.length
+            ? Helpers.getFullNameCharacters(allowedCharacters.join(''))
+            : null
+    };
+
+    return {finishedComic, caption, metadata};
 }

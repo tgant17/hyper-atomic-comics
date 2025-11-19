@@ -8,9 +8,10 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const lastPull = await GoogleDrive.getLatestFileTimestamp();
-    return NextResponse.json({ lastPull });
+    const comicCount = await GoogleDrive.getFileCount();
+    return NextResponse.json({ lastPull, comicCount });
   } catch (error) {
     console.error('Failed to fetch last pull timestamp', error);
-    return NextResponse.json({ lastPull: null }, { status: 500 });
+    return NextResponse.json({ lastPull: null, comicCount: null }, { status: 500 });
   }
 }

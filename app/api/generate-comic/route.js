@@ -5,9 +5,17 @@ const { generateComic } = require('../../../lib/generateComic');
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+export async function POST(request) {
   try {
-    const comic = await generateComic();
+    let payload = {};
+    if (request) {
+      const contentType = request.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        payload = await request.json().catch(() => ({}));
+      }
+    }
+
+    const comic = await generateComic(payload);
     return NextResponse.json({
       ...comic,
       generatedAt: new Date().toISOString()

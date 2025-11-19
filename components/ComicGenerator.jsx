@@ -26,6 +26,45 @@ const LOADING_LINES = [
   'Scrambling captions from hyperspace…'
 ];
 
+const ADJECTIVE_OPTIONS = [
+  'Neon',
+  'Drowsy',
+  'Hypnotic',
+  'Cosmic',
+  'Velvet',
+  'Lucid',
+  'Electric',
+  'Rusty',
+  'Iridescent',
+  'Somber'
+];
+
+const NOUN_OPTIONS = [
+  'Astronaut',
+  'Lighthouse',
+  'Chrononaut',
+  'Orb',
+  'Marshmallow',
+  'Specter',
+  'Synth',
+  'Courier',
+  'Cactus',
+  'Pilgrim'
+];
+
+const CHARACTER_OPTIONS = [
+  { id: 'a', prefix: 'alien', name: 'Alien Pilot', image: '/assets/characters/alien.png' },
+  { id: 'c', prefix: 'campfire', name: 'Campfire Sage', image: '/assets/characters/campfire.png' },
+  { id: 'f', prefix: 'foggy', name: 'Foggy Friend', image: '/assets/characters/foggy.png' },
+  { id: 'r', prefix: 'robot', name: 'Robot Medic', image: '/assets/characters/robot.png' },
+  { id: 't', prefix: 'toast-ghost', name: 'Toast Ghost', image: '/assets/characters/toast-ghost.png' }
+];
+
+const DEFAULT_CHARACTER_IMAGES = CHARACTER_OPTIONS.reduce((acc, option) => {
+  acc[option.id] = option.image;
+  return acc;
+}, {});
+
 const getRandomValue = (list, exclude) => {
   const pool = exclude ? list.filter((entry) => entry !== exclude) : list;
   const source = pool.length ? pool : list;
@@ -52,6 +91,12 @@ export default function ComicGenerator() {
   const [placeholderLine, setPlaceholderLine] = useState(PLACEHOLDER_LINES[0]);
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
   const [lastPull, setLastPull] = useState(null);
+  const [totalComics, setTotalComics] = useState(null);
+  const [adjective, setAdjective] = useState('');
+  const [noun, setNoun] = useState('');
+  const [selectedCharacters, setSelectedCharacters] = useState(() => new Set());
+  const [characterImages, setCharacterImages] = useState(DEFAULT_CHARACTER_IMAGES);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     setConsoleLabel((prev) => getRandomValue(CONSOLE_LABELS, prev));
@@ -66,8 +111,13 @@ export default function ComicGenerator() {
         const response = await fetch('/api/last-pull');
         if (!response.ok) return;
         const data = await response.json();
-        if (active && data?.lastPull) {
-          setLastPull(data.lastPull);
+        if (active) {
+          if (data?.lastPull) {
+            setLastPull(data.lastPull);
+          }
+          if (typeof data?.comicCount === 'number') {
+            setTotalComics(data.comicCount);
+          }
         }
       } catch (err) {
         console.error('Unable to load last pull timestamp', err);
@@ -81,14 +131,63 @@ export default function ComicGenerator() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadCharacterImages = async () => {
+      try {
+        const response = await fetch('/api/character-pfps');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!active || !data?.images) return;
+
+        setCharacterImages((prev) => {
+          const next = { ...prev };
+          CHARACTER_OPTIONS.forEach((option) => {
+            const files = data.images[option.id];
+            if (Array.isArray(files) && files.length) {
+              next[option.id] = getRandomValue(files);
+            }
+          });
+          return next;
+        });
+      } catch (error) {
+        console.error('Unable to load character pfps', error);
+      }
+    };
+
+    loadCharacterImages();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const statusPills = [
     { label: 'Console status', value: isLoading ? 'Brewing new strip' : 'Idle' },
     { label: 'History slots', value: `${history.length}/${HISTORY_LIMIT}` },
-    {
-      label: 'Last pull',
-      value: lastPull ? formatTimestamp(lastPull) : 'Awaiting signal'
-    }
+    { label: 'Last pull', value: lastPull ? formatTimestamp(lastPull) : 'Awaiting signal' },
+    { label: 'Comic count', value: totalComics ?? '—' }
   ];
+
+  const toggleCharacter = (id) => {
+    setSelectedCharacters((prev) => {
+      const clone = new Set(prev);
+      if (clone.has(id)) {
+        clone.delete(id);
+      } else {
+        clone.add(id);
+      }
+      return clone;
+    });
+  };
+
+  const handleResetInputs = () => {
+    setAdjective('');
+    setNoun('');
+    setSelectedCharacters(new Set());
+    setPlaceholderLine((prev) => getRandomValue(PLACEHOLDER_LINES, prev));
+  };
 
   const requestComic = useCallback(
     async (preserveCurrent = false) => {
@@ -107,7 +206,23 @@ export default function ComicGenerator() {
           });
         }
 
-        const response = await fetch('/api/generate-comic', { method: 'POST' });
+        const trimmedAdjective = adjective.trim();
+        const trimmedNoun = noun.trim();
+        const hasCustomSeed = trimmedAdjective && trimmedNoun;
+        const characterList = Array.from(selectedCharacters);
+
+        const requestBody = {
+          seedPhrase: hasCustomSeed
+            ? { adjective: trimmedAdjective, noun: trimmedNoun }
+            : undefined,
+          characters: characterList.length ? characterList : undefined
+        };
+
+        const response = await fetch('/api/generate-comic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
         const raw = await response.text();
         let payload = {};
         try {
@@ -134,7 +249,7 @@ export default function ComicGenerator() {
         setIsLoading(false);
       }
     },
-    [currentComic]
+    [adjective, currentComic, noun, selectedCharacters]
   );
 
   const handleRecall = (entry) => {
@@ -162,6 +277,90 @@ export default function ComicGenerator() {
         </div>
       </header>
 
+      <div className="control-toggle">
+        <span>{showControls ? 'Hide controls' : 'Control the input'}</span>
+        <button
+          type="button"
+          aria-label="Toggle controls"
+          className={showControls ? 'is-open' : ''}
+          onClick={() => setShowControls((prev) => !prev)}
+        >
+          <span>›</span>
+        </button>
+      </div>
+
+      {showControls ? (
+        <section className="console-inputs">
+          <div className="seed-grid">
+            <label className="field">
+              <span>Adjective</span>
+              <div className="field__combo">
+                <input
+                  type="text"
+                  value={adjective}
+                  onChange={(e) => setAdjective(e.target.value)}
+                  placeholder="Neon"
+                  autoComplete="off"
+                />
+                <select
+                  value={ADJECTIVE_OPTIONS.includes(adjective.trim()) ? adjective.trim() : ''}
+                  onChange={(e) => setAdjective(e.target.value)}
+                >
+                  <option value="">Pick from list</option>
+                  {ADJECTIVE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+            <label className="field">
+              <span>Noun</span>
+              <div className="field__combo">
+                <input
+                  type="text"
+                  value={noun}
+                  onChange={(e) => setNoun(e.target.value)}
+                  placeholder="Astronaut"
+                  autoComplete="off"
+                />
+                <select
+                  value={NOUN_OPTIONS.includes(noun.trim()) ? noun.trim() : ''}
+                  onChange={(e) => setNoun(e.target.value)}
+                >
+                  <option value="">Pick from list</option>
+                  {NOUN_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+          </div>
+          <div className="character-grid">
+            {CHARACTER_OPTIONS.map((option) => {
+              const isActive = selectedCharacters.has(option.id);
+              return (
+                <button
+                  type="button"
+                  key={option.id}
+                  className={`character-card${isActive ? ' is-active' : ''}`}
+                  onClick={() => toggleCharacter(option.id)}
+                >
+                  <img
+                    src={characterImages[option.id] ?? option.image}
+                    alt={`${option.name} placeholder`}
+                  />
+                  <span>{option.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <div className="actions">
         <button
           className="primary"
@@ -177,6 +376,11 @@ export default function ComicGenerator() {
         >
           Generate another
         </button>
+        {currentComic ? (
+          <button type="button" className="ghost" onClick={handleResetInputs}>
+            Refresh inputs
+          </button>
+        ) : null}
       </div>
 
       {error ? <div className="error-banner">{error}</div> : null}
