@@ -1,10 +1,12 @@
 {
-  "name": "atomiccomics",
-  "version": "1.1.0",
-  "description": "Generates a random 4 panel comic and posts it onto Instagram. - https://www.instagram.com/hyper_atomic_comics/ ",
-  "main": "index.js",
+  "name": "dream-drive",
+  "version": "2.0.0",
+  "description": "Next.js experience for generating random 4 panel comics.",
+  "private": true,
   "scripts": {
-    "start": "node main.js PANELS/ >> log.txt"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "engines": {
     "node": "20.x"
@@ -13,12 +15,15 @@
   "author": "Tristan Gant - tgant17",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.3.1",
+    "axios": "^1.8.4",
     "google-auth-library": "^9.4.1",
     "google-spreadsheet": "^4.1.1",
-    "instagram-private-api": "^1.45.3",
+    "googleapis": "^144.0.0",
     "jimp": "^0.22.10",
+    "next": "15.0.0-canary.36",
     "openai": "^4.26.0",
+    "react": "19.0.0-rc.0",
+    "react-dom": "19.0.0-rc.0",
     "tough-cookie-filestore2": "^1.0.0"
   }
 }

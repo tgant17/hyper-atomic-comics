@@ -128,7 +128,7 @@ Helpers.prototype.getRandomBackground = (path) => {
  */
 Helpers.prototype.getFullNameCharacters = (characters) => {
     var set = new Set();
-    for(char of characters) {
+    for(const char of characters) {
         if(char === 'z' || char === 'o' || char === 'y') continue;
         set.add(char);
     }
@@ -136,12 +136,12 @@ Helpers.prototype.getFullNameCharacters = (characters) => {
         'a': 'Alien',
         'c': 'Campfire',
         'f': 'Foggy',
-        'r': 'Robert',
+        'r': 'Robot',
         't': 'Toast Ghost',
     }
 
     var fullNameChars = [];
-    for(char of set) {
+    for(const char of set) {
         fullNameChars.push(charMap[char]);
     }
     return fullNameChars;

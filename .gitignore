@@ -1,10 +1,10 @@
 node_modules/
-output.jpg
 package-lock.json
-log.txt
 .env
-sheets-key.json
-PANELS/
 .DS_STORE
-Backgrounds/
-PANELz/
+.qodo
+zine.zip
+.next/
+.vercel/
+tmp/
+credentials.json
