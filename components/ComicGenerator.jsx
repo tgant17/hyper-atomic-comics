@@ -1,8 +1,36 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const HISTORY_LIMIT = 8;
+const CONSOLE_LABELS = [
+  'Panel Transmission Deck',
+  'Dream Drive Switchboard',
+  'Somnolog Courier Hub',
+  'Side Effect Dispatch Bay',
+  'Hypersomnia Relay Booth',
+  'Cosmic Intake Terminal'
+];
+
+const PLACEHOLDER_LINES = [
+  'Tap “Generate comic” to witness the chaos.',
+  'Press “Generate comic” to log another symptom.',
+  'Deploy “Generate comic” and brace for an alien dispatch.',
+  'Trigger “Generate comic” to ping the Hypersomnia courier.'
+];
+
+const LOADING_LINES = [
+  'Summoning panels…',
+  'Routing side effects through the modem…',
+  'Syncing with the alien mailroom…',
+  'Scrambling captions from hyperspace…'
+];
+
+const getRandomValue = (list, exclude) => {
+  const pool = exclude ? list.filter((entry) => entry !== exclude) : list;
+  const source = pool.length ? pool : list;
+  return source[Math.floor(Math.random() * source.length)];
+};
 
 const formatTimestamp = (value) => {
   try {
@@ -20,11 +48,57 @@ export default function ComicGenerator() {
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [consoleLabel, setConsoleLabel] = useState(CONSOLE_LABELS[0]);
+  const [placeholderLine, setPlaceholderLine] = useState(PLACEHOLDER_LINES[0]);
+  const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
+  const [lastPull, setLastPull] = useState(null);
+
+  useEffect(() => {
+    setConsoleLabel((prev) => getRandomValue(CONSOLE_LABELS, prev));
+    setPlaceholderLine((prev) => getRandomValue(PLACEHOLDER_LINES, prev));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadLastPull = async () => {
+      try {
+        const response = await fetch('/api/last-pull');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (active && data?.lastPull) {
+          setLastPull(data.lastPull);
+        }
+      } catch (err) {
+        console.error('Unable to load last pull timestamp', err);
+      }
+    };
+
+    loadLastPull();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const statusPills = [
+    { label: 'Console status', value: isLoading ? 'Brewing new strip' : 'Idle' },
+    { label: 'History slots', value: `${history.length}/${HISTORY_LIMIT}` },
+    {
+      label: 'Last pull',
+      value: lastPull ? formatTimestamp(lastPull) : 'Awaiting signal'
+    }
+  ];
 
   const requestComic = useCallback(
     async (preserveCurrent = false) => {
       setError(null);
       setIsLoading(true);
+      setConsoleLabel((prev) => getRandomValue(CONSOLE_LABELS, prev));
+      setLoadingLine((prev) => getRandomValue(LOADING_LINES, prev));
+      if (!currentComic) {
+        setPlaceholderLine((prev) => getRandomValue(PLACEHOLDER_LINES, prev));
+      }
       try {
         if (preserveCurrent && currentComic) {
           setHistory((prev) => {
@@ -53,6 +127,7 @@ export default function ComicGenerator() {
           displayUrl
         };
         setCurrentComic(normalized);
+        setLastPull(normalized.generatedAt);
       } catch (err) {
         setError(err?.message ?? 'Unable to generate comic');
       } finally {
@@ -68,6 +143,25 @@ export default function ComicGenerator() {
 
   return (
     <section className="comic-generator">
+      <header className="console-header">
+        <div>
+          <p className="console-eyebrow">Side Effect Control</p>
+          <h2>{consoleLabel}</h2>
+          <p className="console-subtitle">
+            Tap the console to capture a new dream-state comic. Each pull mirrors the legacy
+            Hypersomnia drive rituals.
+          </p>
+        </div>
+        <div className="console-status">
+          {statusPills.map((pill) => (
+            <div key={pill.label} className="console-status__item">
+              <small>{pill.label}</small>
+              <strong>{pill.value}</strong>
+            </div>
+          ))}
+        </div>
+      </header>
+
       <div className="actions">
         <button
           className="primary"
@@ -97,7 +191,7 @@ export default function ComicGenerator() {
         ) : (
           <div className="comic-stage__placeholder">
             <strong>No comic yet</strong>
-            <span>Tap “Generate comic” to witness the chaos.</span>
+            <span>{placeholderLine}</span>
           </div>
         )}
         {isLoading ? (
@@ -107,7 +201,7 @@ export default function ComicGenerator() {
               <span className="gear" />
               <span className="gear" />
             </div>
-            <p>Summoning panels…</p>
+            <p>{loadingLine}</p>
           </div>
         ) : null}
       </div>
