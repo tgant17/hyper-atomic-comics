@@ -1,4 +1,5 @@
 import './globals.css';
+import BackgroundScene from '@/components/BackgroundScene';
 
 export const metadata = {
   title: 'Dream Drive',
@@ -8,7 +9,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <BackgroundScene />
+        <div className="app-shell">{children}</div>
+      </body>
     </html>
   );
 }

@@ -38,20 +38,39 @@ const authenticate = async () => {
   	return auth; 
 }
 
+const getDriveClient = async () => {
+	const auth = await authenticate();
+	return google.drive({ version: 'v3', auth });
+};
+
 const getFileCount = async () => {
 	const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; 
-	const auth = await authenticate();
-	const drive = google.drive({version: 'v3', auth});
+	const drive = await getDriveClient();
 
 	const response = await drive.files.list({
 		q: `'${folderId}' in parents`,
 		fields: 'files(id)',
 	});
 
-  const fileCount = response.data.files.length;
-  console.log(fileCount);
-  return fileCount; 
-}
+	const fileCount = response.data.files.length;
+	console.log(fileCount);
+	return fileCount; 
+};
+
+const getLatestFileTimestamp = async () => {
+	const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+	const drive = await getDriveClient();
+
+	const response = await drive.files.list({
+		q: `'${folderId}' in parents`,
+		orderBy: 'createdTime desc',
+		pageSize: 1,
+		fields: 'files(id, createdTime)'
+	});
+
+	const latest = response.data.files?.[0];
+	return latest?.createdTime ?? null;
+};
 
 /**
  * Uploads an image file to Google Drive.
@@ -67,8 +86,7 @@ const getFileCount = async () => {
  */
 async function uploadImage(_filePath) {
 	const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; 
-	const auth = await authenticate();
-	const drive = google.drive({version: 'v3', auth});
+	const drive = await getDriveClient();
 
 	const fileMetadata = {
 		'name': path.basename(_filePath), 
@@ -97,5 +115,6 @@ async function uploadImage(_filePath) {
 
 module.exports = {
 	getFileCount,
+	getLatestFileTimestamp,
 	uploadImage
 };
