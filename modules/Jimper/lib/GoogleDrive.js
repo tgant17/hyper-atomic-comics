@@ -2,18 +2,38 @@ const fs = require('fs');
 const { google } = require('googleapis');
 const path = require('path');
 
+const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+
+const getCredentialsFromEnv = () => {
+	const raw = process.env.GOOGLE_DRIVE_CREDENTIALS_JSON;
+	if (!raw) return null;
+
+	try {
+		if (raw.trim().startsWith('{')) {
+			return JSON.parse(raw);
+		}
+		const decoded = Buffer.from(raw, 'base64').toString('utf-8');
+		return JSON.parse(decoded);
+	} catch (err) {
+		throw new Error('Invalid GOOGLE_DRIVE_CREDENTIALS_JSON content.');
+	}
+};
+
 /**
- * Authenticates the application using Google Auth with the specified credentials file.
- * 
- * @returns {Promise<google.auth.GoogleAuth>} A promise that resolves to the GoogleAuth instance.
+ * Authenticates the application using Google Auth with credentials sourced from env vars
+ * or fallback credentials file.
  */
 const authenticate = async () => {
+	const credentials = getCredentialsFromEnv();
 	const credentialFilename = process.env.GOOGLE_DRIVE_CREDENTIALS_PATH;
-	const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+
+	if (!credentials && !credentialFilename) {
+		throw new Error('Set GOOGLE_DRIVE_CREDENTIALS_JSON or GOOGLE_DRIVE_CREDENTIALS_PATH.');
+	}
 
 	const auth = new google.auth.GoogleAuth({
-		keyFile: credentialFilename,
-		scopes: SCOPES
+		scopes: SCOPES,
+		...(credentials ? { credentials } : { keyFile: credentialFilename })
   	});
   	return auth; 
 }
